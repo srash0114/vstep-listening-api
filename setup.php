@@ -3,18 +3,33 @@
 echo "🚀 English Listening Test - Database Setup\n";
 echo "=" . str_repeat("=", 50) . "\n\n";
 
-// Connect to MySQL without database
-$mysqli = new mysqli('localhost', 'root', '');
+// Load env.local if present
+$envFile = __DIR__ . '/env.local';
+if (file_exists($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (strpos(trim($line), '#') === 0 || strpos($line, '=') === false) continue;
+        [$k, $v] = explode('=', $line, 2);
+        putenv(trim($k) . '=' . trim($v));
+    }
+}
+
+$host   = getenv('DB_HOST') ?: '127.0.0.1';
+$user   = getenv('DB_USER') ?: 'root';
+$pass   = getenv('DB_PASS') ?: '';
+$port   = (int)(getenv('DB_PORT') ?: 3306);
+$dbName = getenv('DB_NAME') ?: 'listening_test';
+
+// Connect to MySQL without selecting database
+$mysqli = new mysqli($host, $user, $pass, '', $port);
 
 if ($mysqli->connect_error) {
     die("❌ Connection failed: " . $mysqli->connect_error . "\n");
 }
 
-echo "✅ Connected to MySQL\n";
+echo "✅ Connected to MySQL ($host:$port)\n";
 
 // Create database
-$dbName = 'listening_test';
-$sql = "CREATE DATABASE IF NOT EXISTS $dbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
+$sql = "CREATE DATABASE IF NOT EXISTS `$dbName` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci";
 
 if ($mysqli->query($sql)) {
     echo "✅ Database '$dbName' created/verified\n";
