@@ -1,10 +1,10 @@
 <?php
 // Database Configuration
-define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
-define('DB_USER', getenv('DB_USER') ?: 'root');
-define('DB_PASS', getenv('DB_PASS') ?: '');
-define('DB_NAME', getenv('DB_NAME') ?: 'listening_test');
-define('DB_PORT', getenv('DB_PORT') ?: 3306);
+define('DB_HOST', getenv('DB_HOST') ?: getenv('MYSQLHOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: getenv('MYSQLUSER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') ?: getenv('MYSQLPASSWORD') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: getenv('MYSQLDATABASE') ?: 'listening_test');
+define('DB_PORT', getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: 3306);
 
 // API Configuration
 define('API_URL', getenv('API_URL') ?: 'http://localhost:8000');

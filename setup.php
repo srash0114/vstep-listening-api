@@ -13,11 +13,11 @@ if (file_exists($envFile)) {
     }
 }
 
-$host   = getenv('DB_HOST') ?: '127.0.0.1';
-$user   = getenv('DB_USER') ?: 'root';
-$pass   = getenv('DB_PASS') ?: '';
-$port   = (int)(getenv('DB_PORT') ?: 3306);
-$dbName = getenv('DB_NAME') ?: 'listening_test';
+$host   = getenv('DB_HOST')   ?: getenv('MYSQLHOST')     ?: '127.0.0.1';
+$user   = getenv('DB_USER')   ?: getenv('MYSQLUSER')     ?: 'root';
+$pass   = getenv('DB_PASS')   ?: getenv('MYSQLPASSWORD') ?: '';
+$port   = (int)(getenv('DB_PORT') ?: getenv('MYSQLPORT') ?: 3306);
+$dbName = getenv('DB_NAME')   ?: getenv('MYSQLDATABASE') ?: 'listening_test';
 
 // Connect to MySQL without selecting database
 $mysqli = new mysqli($host, $user, $pass, '', $port);
