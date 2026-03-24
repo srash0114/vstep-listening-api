@@ -3,6 +3,9 @@
     "description": "English Listening Test API with Firebase Storage",
     "require": {
         "php": "^8.2",
+        "ext-mysqli": "*",
+        "ext-curl": "*",
+        "ext-json": "*",
         "appwrite/appwrite": "^20.2"
     },
     "autoload": {
