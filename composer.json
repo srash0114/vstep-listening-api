@@ -1,0 +1,13 @@
+{
+    "name": "english-listening-test/api",
+    "description": "English Listening Test API with Firebase Storage",
+    "require": {
+        "php": ">=7.4",
+        "appwrite/appwrite": "^20.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "api/"
+        }
+    }
+}
