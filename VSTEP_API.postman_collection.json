@@ -1,0 +1,383 @@
+{
+  "info": {
+    "name": "VSTEP English Listening Test API",
+    "description": "Complete API collection for VSTEP listening test management",
+    "version": "2.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "User Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/register",
+              "host": ["api", "users"],
+              "path": ["api", "users", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/login",
+              "host": ["api", "users"],
+              "path": ["api", "users", "login"]
+            }
+          }
+        },
+        {
+          "name": "Check Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/check-status",
+              "host": ["api", "users"],
+              "path": ["api", "users", "check-status"]
+            }
+          }
+        },
+        {
+          "name": "Logout User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/logout",
+              "host": ["api", "users"],
+              "path": ["api", "users", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Management - Legacy",
+      "item": [
+        {
+          "name": "Get All Tests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests",
+              "host": ["api", "tests"],
+              "path": ["api", "tests"]
+            }
+          }
+        },
+        {
+          "name": "Get Test Detail",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests/detail?id=1",
+              "host": ["api", "tests"],
+              "path": ["api", "tests", "detail"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Test",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"VSTEP Listening Test\",\n  \"level\": \"B1\",\n  \"totalQuestions\": 35,\n  \"duration\": 3600\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tests",
+              "host": ["api", "tests"],
+              "path": ["api", "tests"]
+            }
+          }
+        },
+        {
+          "name": "Update Test",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Test Title\",\n  \"level\": \"B2\",\n  \"duration\": 3600\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tests?id=1",
+              "host": ["api", "tests"],
+              "path": ["api", "tests"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Test",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests?id=1",
+              "host": ["api", "tests"],
+              "path": ["api", "tests"],
+              "query": [
+                {
+                  "key": "id",
+                  "value": "1"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Test Management - Enhanced (NEW)",
+      "description": "Part-based test management - NEW in v2.0",
+      "item": [
+        {
+          "name": "Get Full Test Structure (Parts + Questions)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests/1/full",
+              "host": ["api", "tests"],
+              "path": ["api", "tests", "1", "full"]
+            }
+          }
+        },
+        {
+          "name": "Get All Parts for Test",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests/1/parts",
+              "host": ["api", "tests"],
+              "path": ["api", "tests", "1", "parts"]
+            }
+          }
+        },
+        {
+          "name": "Get Specific Part with Questions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests/1/parts/1",
+              "host": ["api", "tests"],
+              "path": ["api", "tests", "1", "parts", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Test Progress/Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests/1/progress",
+              "host": ["api", "tests"],
+              "path": ["api", "tests", "1", "progress"]
+            }
+          }
+        },
+        {
+          "name": "Create Complete Test (All Parts + Questions)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "data",
+                  "value": "{\n  \"title\": \"VSTEP Listening Test - Complete\",\n  \"level\": \"B1\",\n  \"duration\": 3600,\n  \"parts\": [\n    {\n      \"partNumber\": 1,\n      \"title\": \"Announcements & Short Messages\",\n      \"description\": \"Listen to 8 short announcements\",\n      \"questions\": [\n        {\n          \"questionNumber\": 1,\n          \"question\": \"What music will they have?\",\n          \"optionA\": \"Guitar\",\n          \"optionB\": \"Piano\",\n          \"optionC\": \"CDs\",\n          \"optionD\": \"Cello\",\n          \"correctAnswer\": \"C\",\n          \"correctAnswerIndex\": 2,\n          \"script\": \"They will use CDs for music\"\n        }\n      ]\n    }\n  ]\n}",
+                  "type": "text"
+                },
+                {
+                  "key": "part_1_audio",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "part_2_audio",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "part_3_audio",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tests/create-complete",
+              "host": ["api", "tests"],
+              "path": ["api", "tests", "create-complete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Questions Management",
+      "item": [
+        {
+          "name": "Create Questions Batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testId\": 1,\n  \"partId\": 1,\n  \"questions\": [\n    {\n      \"questionNumber\": 1,\n      \"question\": \"What is the main topic?\",\n      \"optionA\": \"Option A\",\n      \"optionB\": \"Option B\",\n      \"optionC\": \"Option C\",\n      \"optionD\": \"Option D\",\n      \"correctAnswer\": \"B\",\n      \"correctAnswerIndex\": 1,\n      \"script\": \"The speaker mentions Option B\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tests/create-questions-batch",
+              "host": ["api", "tests"],
+              "path": ["api", "tests", "create-questions-batch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parts Management",
+      "item": [
+        {
+          "name": "Upload Audio for Part",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "audio",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/parts/1/upload-audio",
+              "host": ["api", "parts"],
+              "path": ["api", "parts", "1", "upload-audio"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Results Management",
+      "item": [
+        {
+          "name": "Get All Results",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/results",
+              "host": ["api", "results"],
+              "path": ["api", "results"]
+            }
+          }
+        },
+        {
+          "name": "Submit Test Result",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testId\": 1,\n  \"answers\": [\n    {\"questionId\": 1, \"answer\": 0},\n    {\"questionId\": 2, \"answer\": 1},\n    {\"questionId\": 3, \"answer\": 2}\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/results",
+              "host": ["api", "results"],
+              "path": ["api", "results"]
+            }
+          }
+        },
+        {
+          "name": "Get Result Statistics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/results/stats",
+              "host": ["api", "results"],
+              "path": ["api", "results", "stats"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    }
+  ]
+}
