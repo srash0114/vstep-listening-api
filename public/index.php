@@ -9,14 +9,18 @@ date_default_timezone_set('UTC');
 
 ob_start();
 
-$allowed_origins = [
-    'http://localhost:3000',
-    'http://localhost:8000',
-    'http://localhost:8001',
-    'http://127.0.0.1:3000',
-    'http://127.0.0.1:8000',
-    'http://192.168.123.1:3000',
-];
+// Load env.local
+$envFile = __DIR__ . '/../env.local';
+if (file_exists($envFile)) {
+    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        if (strpos($line, '=') === false) continue;
+        [$key, $value] = explode('=', $line, 2);
+        putenv(trim($key) . '=' . trim($value));
+    }
+}
+
+$allowed_origins = array_filter(explode(',', getenv('ALLOWED_ORIGINS') ?: ''));
 
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
 
@@ -33,17 +37,6 @@ header('Content-Type: application/json; charset=utf-8');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
-}
-
-// Load env.local
-$envFile = __DIR__ . '/../env.local';
-if (file_exists($envFile)) {
-    foreach (file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
-        if (strpos(trim($line), '#') === 0) continue;
-        if (strpos($line, '=') === false) continue;
-        [$key, $value] = explode('=', $line, 2);
-        putenv(trim($key) . '=' . trim($value));
-    }
 }
 
 // Composer autoloader
