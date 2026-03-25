@@ -110,24 +110,20 @@ class TokenManager {
      * Set token as HttpOnly cookie
      */
     public static function setCookie($token) {
-        // Determine if secure (HTTPS)
-        $isSecure = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
-        
-        // For cross-origin localhost development:
-        // Don't set domain - let browser handle it
-        // This allows localhost:3000 to receive cookie from localhost:8000
-        
-        // Set HttpOnly cookie
+        // Railway terminates SSL at proxy level — check X-Forwarded-Proto
+        $isSecure = !empty($_SERVER['HTTPS']) ||
+                    ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+
         setcookie(
             'auth_token',
             $token,
             [
-                'expires' => time() + self::$expiry,
-                'path' => '/',
-                'domain' => '',  // ⭐ EMPTY for localhost cross-origin
-                'secure' => $isSecure,  // false for localhost (no HTTPS)
-                'httponly' => true,     // JavaScript cannot access
-                'samesite' => 'Lax'     // Allows cross-site (localhost:3000 → localhost:8000)
+                'expires'  => time() + self::$expiry,
+                'path'     => '/',
+                'domain'   => '',
+                'secure'   => $isSecure,
+                'httponly' => true,
+                'samesite' => $isSecure ? 'None' : 'Lax'
             ]
         );
     }
