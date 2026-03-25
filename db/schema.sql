@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS parts (
     title VARCHAR(255) NOT NULL,
     description TEXT,
     audio_url VARCHAR(500),  -- Main audio file for entire part
+    audio_path VARCHAR(255), -- Appwrite file ID for deletion
     duration INT,  -- in seconds
     question_count INT,  -- 8 for Part 1, 12 for Part 2, 15 for Part 3
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
