@@ -132,15 +132,19 @@ class TokenManager {
      * Clear auth cookie
      */
     public static function clearCookie() {
+        $isSecure = !empty($_SERVER['HTTPS']) ||
+                    ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
+
         setcookie(
             'auth_token',
             '',
             [
-                'expires' => time() - 3600,
-                'path' => '/',
-                'domain' => '',  // ⭐ Match setCookie
+                'expires'  => time() - 3600,
+                'path'     => '/',
+                'domain'   => '',
+                'secure'   => $isSecure,
                 'httponly' => true,
-                'samesite' => 'Lax'
+                'samesite' => $isSecure ? 'None' : 'Lax'
             ]
         );
     }
