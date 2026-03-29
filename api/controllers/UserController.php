@@ -63,7 +63,7 @@ class UserController {
         $controller->user->updateLastLogin($user['id']);
 
         // Generate token with HttpOnly cookie
-        $token = TokenManager::generate($user['id'], $user['email']);
+        $token = TokenManager::generate($user['id'], $user['email'], $user['role'] ?? 'user');
         TokenManager::setCookie($token);
 
         // Return user WITHOUT token in response (stored in HttpOnly cookie)
@@ -130,7 +130,8 @@ class UserController {
             'fullName' => $user['full_name'],
             'isActive' => $user['is_active'],
             'createdAt' => $user['created_at'],
-            'lastLogin' => $user['last_login']
+            'lastLogin' => $user['last_login'],
+            'role' => $user['role'] ?? 'user',
         ];
         
         $response = Response::success($userData, 'User is logged in');

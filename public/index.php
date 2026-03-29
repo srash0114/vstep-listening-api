@@ -46,7 +46,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../config/response.php';
 require_once __DIR__ . '/../config/token.php';
-require_once __DIR__ . '/../config/appwrite.php';
+require_once __DIR__ . '/../config/cloudinary.php';
 require_once __DIR__ . '/../config/upload.php';
 
 // Models
@@ -115,6 +115,7 @@ $dynamic_routes = [
     '/^POST \/api\/v1\/user-exams\/(\d+)\/answer$/'                                            => ['TestAccessController', 'saveAnswer'],
     '/^POST \/api\/v1\/user-exams\/(\d+)\/submit$/'                                            => ['TestAccessController', 'submitExam'],
     '/^GET \/api\/v1\/user-exams\/(\d+)\/result$/'                                             => ['TestAccessController', 'getResult'],
+    '/^DELETE \/api\/v1\/user-exams\/(\d+)$/'                                                  => ['TestAccessController', 'deleteUserExam'],
 
     // Admin Exams
     '/^GET \/api\/v1\/admin\/exams\/(\d+)$/'                                                   => ['ExamController', 'getById'],
@@ -153,6 +154,15 @@ $dynamic_routes = [
 
 $matched = false;
 $route_key = "$request_method $request_uri";
+
+// Admin route protection
+if (strpos($request_uri, '/admin/') !== false) {
+    $adminDecoded = TokenManager::verifyAdmin();
+    if (!$adminDecoded) {
+        $response = Response::forbidden('Admin access required');
+        Response::send($response);
+    }
+}
 
 try {
     foreach ($routes as $pattern => $handler) {

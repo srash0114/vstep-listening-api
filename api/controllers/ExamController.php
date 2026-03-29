@@ -240,12 +240,35 @@ class ExamController {
 
         $exam_id = intval($exam_id);
         $controller = new self();
-        
+
         $exam = $controller->exam_model->getById($exam_id);
         if (!$exam) {
             $response = Response::notFound('Exam not found');
             Response::send($response);
             return;
+        }
+
+        // Delete all Cloudinary audio files before deleting exam
+        $examContent = $controller->exam_model->getWithContent($exam_id);
+        foreach ($examContent['parts'] ?? [] as $part) {
+            if (!empty($part['audio_path'])) {
+                CloudinaryAudioUpload::deleteAudio($part['audio_path']);
+            }
+            foreach ($part['passages'] ?? [] as $passage) {
+                if (!empty($passage['audio_path'])) {
+                    CloudinaryAudioUpload::deleteAudio($passage['audio_path']);
+                }
+                foreach ($passage['questions'] ?? [] as $question) {
+                    if (!empty($question['audio_path'])) {
+                        CloudinaryAudioUpload::deleteAudio($question['audio_path']);
+                    }
+                }
+            }
+            foreach ($part['questions'] ?? [] as $question) {
+                if (!empty($question['audio_path'])) {
+                    CloudinaryAudioUpload::deleteAudio($question['audio_path']);
+                }
+            }
         }
 
         if ($controller->exam_model->delete($exam_id)) {

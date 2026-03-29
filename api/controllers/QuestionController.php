@@ -54,7 +54,7 @@ class QuestionController {
 
         // Upload audio if provided
         if (!empty($_FILES['audio'])) {
-            $upload = AppwriteAudioUpload::uploadAudio($_FILES['audio']);
+            $upload = CloudinaryAudioUpload::uploadAudio($_FILES['audio']);
             if (!$upload['success']) {
                 $response = Response::badRequest('upload_failed', $upload['error']);
                 Response::send($response);
@@ -127,11 +127,11 @@ class QuestionController {
 
         // Upload new audio if provided
         if (!empty($_FILES['audio'])) {
-            $upload = AppwriteAudioUpload::uploadAudio($_FILES['audio']);
+            $upload = CloudinaryAudioUpload::uploadAudio($_FILES['audio']);
             if ($upload['success']) {
                 // Delete old audio if exists
                 if (!empty($question['audio_path'])) {
-                    AppwriteAudioUpload::deleteAudio($question['audio_path']);
+                    CloudinaryAudioUpload::deleteAudio($question['audio_path']);
                 }
                 $question_data['audio_url'] = $upload['url'];
                 $question_data['audio_path'] = $upload['path'];
@@ -181,9 +181,9 @@ class QuestionController {
             return;
         }
 
-        // Delete audio from Appwrite
+        // Delete audio from Cloudinary
         if (!empty($question['audio_path'])) {
-            AppwriteAudioUpload::deleteAudio($question['audio_path']);
+            CloudinaryAudioUpload::deleteAudio($question['audio_path']);
         }
 
         // Delete options

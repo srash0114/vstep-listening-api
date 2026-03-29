@@ -7,10 +7,11 @@ class TokenManager {
     /**
      * Generate a simple token
      */
-    public static function generate($userId, $email) {
+    public static function generate($userId, $email, $role = 'user') {
         $payload = [
             'userId' => $userId,
             'email' => $email,
+            'role' => $role,
             'createdAt' => time(),
             'expiresAt' => time() + self::$expiry
         ];
@@ -84,6 +85,21 @@ class TokenManager {
         return hash_hmac('sha256', $payload, self::$secret);
     }
     
+    /**
+     * Verify token and check admin role
+     */
+    public static function verifyAdmin() {
+        $token = self::getTokenFromHeader();
+        if (!$token) return null;
+
+        $decoded = self::verify($token);
+        if (!$decoded) return null;
+
+        if (($decoded['role'] ?? 'user') !== 'admin') return null;
+
+        return $decoded;
+    }
+
     /**
      * Extract token from Authorization header or Cookie
      */

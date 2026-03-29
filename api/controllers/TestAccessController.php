@@ -28,18 +28,25 @@ class TestAccessController {
             return;
         }
 
-        // Get user_id from auth (implement your auth logic)
-        $user_id = 1; // TODO: Get from Auth::userId()
+        $token = TokenManager::getTokenFromHeader();
+        if (!$token) {
+            $response = Response::unauthorized('No token provided');
+            Response::send($response);
+            return;
+        } 
 
-        $exam_id = intval($exam_id);
-        $controller = new self();
-
-        // Check if user already submitted this exam
-        if ($controller->user_exam_model->checkSubmitted($user_id, $exam_id)) {
-            $response = Response::conflict('already_submitted', 'You have already submitted this exam');
+        $decoded = TokenManager::verify($token);
+        if (!$decoded) {    
+            $response = Response::unauthorized('Token invalid or expired');
             Response::send($response);
             return;
         }
+        
+        // Get user_id from auth (implement your auth logic)
+        $user_id = $decoded['userId'];
+
+        $exam_id = intval($exam_id);
+        $controller = new self();
 
         $user_exam_id = $controller->user_exam_model->startExam($user_id, $exam_id);
 
@@ -119,12 +126,27 @@ class TestAccessController {
         if ($user_exam_id === null) {
             $user_exam_id = $_GET['user_exam_id'] ?? null;
         }
-        
+
         if (empty($user_exam_id)) {
             $response = Response::badRequest('missing_param', 'user_exam_id is required');
             Response::send($response);
             return;
         }
+
+        // Extract user_id from token
+        $token = TokenManager::getTokenFromHeader();
+        if (!$token) {
+            $response = Response::unauthorized('No token provided');
+            Response::send($response);
+            return;
+        }
+        $decoded = TokenManager::verify($token);
+        if (!$decoded) {
+            $response = Response::unauthorized('Token invalid or expired');
+            Response::send($response);
+            return;
+        }
+        $user_id = $decoded['userId'];
 
         $data = json_decode(file_get_contents("php://input"), true);
         $time_spent = $data['time_spent'] ?? 0;
@@ -135,6 +157,13 @@ class TestAccessController {
         $user_exam = $controller->user_exam_model->getById($user_exam_id);
         if (!$user_exam) {
             $response = Response::notFound('User exam not found');
+            Response::send($response);
+            return;
+        }
+
+        // Verify ownership
+        if ((int)$user_exam['user_id'] !== (int)$user_id) {
+            $response = Response::forbidden('Access denied');
             Response::send($response);
             return;
         }
@@ -169,7 +198,7 @@ class TestAccessController {
 
         $score = ($correct_answers / $total_questions) * 100;
         $percentage = $correct_answers; // For VSTEP, percentage = number of correct answers
-        $performance_level = $this->calculatePerformanceLevel($correct_answers);
+        $performance_level = $controller->calculatePerformanceLevel($correct_answers);
 
         // Update user exam record
         $submit_data = [
@@ -250,7 +279,21 @@ class TestAccessController {
      * Get user's exam history
      */
     public static function getUserHistory() {
-        $user_id = 1; // TODO: Get from Auth
+        $token = TokenManager::getTokenFromHeader();
+        if (!$token) {
+            $response = Response::unauthorized('No token provided');
+            Response::send($response);
+            return;
+        }
+
+        $decoded = TokenManager::verify($token);
+        if (!$decoded) {
+            $response = Response::unauthorized('Token invalid or expired');
+            Response::send($response);
+            return;
+        }
+
+        $user_id = $decoded['userId'];
         $limit = isset($_GET['limit']) ? intval($_GET['limit']) : 50;
         $offset = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
 
@@ -261,6 +304,62 @@ class TestAccessController {
         Response::send($response);
     }
 
+    /** 
+     * DELETE /api/v1/user-exams/{user_exam_id}
+     * Delete a user exam from history
+     */
+    public static function deleteUserExam($user_exam_id = null) {
+        // Handle URL path parameter
+        if ($user_exam_id === null) {
+            $user_exam_id = $_GET['user_exam_id'] ?? null;
+        }
+        
+        if (empty($user_exam_id)) {
+            $response = Response::badRequest('missing_param', 'user_exam_id is required');
+            Response::send($response);
+            return;
+        }
+
+        $token = TokenManager::getTokenFromHeader();
+        if (!$token) {
+            $response = Response::unauthorized('No token provided');
+            Response::send($response);
+            return;
+        }
+
+        $decoded = TokenManager::verify($token);
+        if (!$decoded) {
+            $response = Response::unauthorized('Token invalid or expired');
+            Response::send($response);
+            return;
+        }
+
+        $user_id = $decoded['userId'];
+        $user_exam_id = intval($user_exam_id);
+
+        $controller = new self();
+        $user_exam = $controller->user_exam_model->getById($user_exam_id);
+
+        if (!$user_exam) {
+            $response = Response::notFound('User exam not found');
+            Response::send($response);
+            return;
+        }
+
+        // Verify ownership
+        if ((int)$user_exam['user_id'] !== (int)$user_id) {
+            $response = Response::forbidden('Access denied');
+            Response::send($response);
+            return;
+        }
+
+        // Delete user exam
+        $controller->user_exam_model->delete($user_exam_id);
+
+        $response = Response::success(null, 'User exam deleted successfully');
+        Response::send($response);
+    }
+    
     private function calculatePerformanceLevel($correct_answers) {
         if ($correct_answers >= 27) return 'excellent'; // 27-35
         if ($correct_answers >= 20) return 'good';      // 20-26

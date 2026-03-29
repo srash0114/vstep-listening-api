@@ -49,6 +49,14 @@ class Response {
         return self::error('not_found', $message, 404);
     }
 
+    public static function forbidden($message = 'Forbidden') {
+        return self::error('forbidden', $message, 403);
+    }
+
+    public static function conflict($error, $message) {
+        return self::error($error, $message, 409);
+    }
+
     public static function serverError($message = 'Internal server error') {
         return self::error('server_error', $message, 500);
     }

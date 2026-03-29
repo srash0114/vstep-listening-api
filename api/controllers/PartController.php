@@ -169,16 +169,16 @@ class PartController {
             return;
         }
 
-        $result = AppwriteAudioUpload::uploadAudio($_FILES['audio']);
+        $result = CloudinaryAudioUpload::uploadAudio($_FILES['audio']);
         if (!$result['success']) {
             $response = Response::badRequest('upload_failed', $result['error']);
             Response::send($response);
             return;
         }
 
-        // Delete old audio from Appwrite if exists
+        // Delete old audio from Cloudinary if exists
         if (!empty($part['audio_path'])) {
-            AppwriteAudioUpload::deleteAudio($part['audio_path']);
+            CloudinaryAudioUpload::deleteAudio($part['audio_path']);
         }
 
         $controller->part_model->update($part_id, [
@@ -232,6 +232,11 @@ class PartController {
 
         $part_id = intval($part_id);
         $controller = new self();
+
+        $part = $controller->part_model->getById($part_id);
+        if ($part && !empty($part['audio_path'])) {
+            CloudinaryAudioUpload::deleteAudio($part['audio_path']);
+        }
 
         if ($controller->part_model->delete($part_id)) {
             $response = Response::success(null, 'Part deleted successfully');

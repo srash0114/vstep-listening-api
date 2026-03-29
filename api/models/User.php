@@ -10,7 +10,7 @@ class User {
 
     public function getById($id) {
         $id = intval($id);
-        $query = "SELECT id, username, email, full_name, created_at, last_login, is_active FROM {$this->table} WHERE id = {$id}";
+        $query = "SELECT id, username, email, full_name, role, created_at, last_login, is_active FROM {$this->table} WHERE id = {$id}";
         $result = $this->db->query($query);
 
         if ($result->num_rows == 0) {

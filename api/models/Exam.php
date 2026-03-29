@@ -118,7 +118,7 @@ class Exam {
     }
 
     private function getQuestionOptions($question_id) {
-        $query = "SELECT * FROM options WHERE question_id = ? ORDER BY option_label ASC";
+        $query = "SELECT id, question_id, content, option_label FROM options WHERE question_id = ? ORDER BY option_label ASC";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $question_id);
         $stmt->execute();
