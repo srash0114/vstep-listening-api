@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS user_exams (
     exam_id INT NOT NULL,
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     submitted_at TIMESTAMP NULL DEFAULT NULL,
+    paused_at TIMESTAMP NULL DEFAULT NULL,
     time_spent INT,  -- in seconds
     total_questions INT,
     correct_answers INT,

@@ -48,6 +48,15 @@ class TestAccessController {
         $exam_id = intval($exam_id);
         $controller = new self();
 
+        // Check if there's an in-progress exam for this user + exam
+        $existing = $controller->user_exam_model->getInProgress($user_id, $exam_id);
+        if ($existing) {
+            $existing['answers'] = $controller->user_answer_model->getByUserExamId($existing['id']);
+            $response = Response::success($existing, 'Resuming existing exam');
+            Response::send($response);
+            return;
+        }
+
         $user_exam_id = $controller->user_exam_model->startExam($user_id, $exam_id);
 
         if (!$user_exam_id) {
@@ -360,6 +369,72 @@ class TestAccessController {
         Response::send($response);
     }
     
+    /**
+     * POST /api/v1/user-exams/{user_exam_id}/pause
+     */
+    public static function pauseExam($user_exam_id = null) {
+        if ($user_exam_id === null) {
+            $user_exam_id = $_GET['user_exam_id'] ?? null;
+        }
+
+        if (empty($user_exam_id)) {
+            $response = Response::badRequest('missing_param', 'user_exam_id is required');
+            Response::send($response);
+            return;
+        }
+
+        $token = TokenManager::getTokenFromHeader();
+        if (!$token) {
+            $response = Response::unauthorized('No token provided');
+            Response::send($response);
+            return;
+        }
+        $decoded = TokenManager::verify($token);
+        if (!$decoded) {
+            $response = Response::unauthorized('Token invalid or expired');
+            Response::send($response);
+            return;
+        }
+        $user_id = $decoded['userId'];
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        $time_spent = $data['time_spent'] ?? 0;
+        $answers = $data['answers'] ?? [];
+
+        $user_exam_id = intval($user_exam_id);
+        $controller = new self();
+
+        $user_exam = $controller->user_exam_model->getById($user_exam_id);
+        if (!$user_exam) {
+            $response = Response::notFound('User exam not found');
+            Response::send($response);
+            return;
+        }
+
+        if ((int)$user_exam['user_id'] !== (int)$user_id) {
+            $response = Response::forbidden('Access denied');
+            Response::send($response);
+            return;
+        }
+
+        if ($user_exam['submitted_at']) {
+            $response = Response::conflict('exam_submitted', 'This exam has already been submitted');
+            Response::send($response);
+            return;
+        }
+
+        // Save answers if provided
+        if (!empty($answers)) {
+            $controller->user_answer_model->batchSave($user_exam_id, $answers);
+        }
+
+        $controller->user_exam_model->pause($user_exam_id, intval($time_spent));
+
+        $updated = $controller->user_exam_model->getById($user_exam_id);
+        $response = Response::success($updated, 'Exam paused successfully');
+        Response::send($response);
+    }
+
     private function calculatePerformanceLevel($correct_answers) {
         if ($correct_answers >= 27) return 'excellent'; // 27-35
         if ($correct_answers >= 20) return 'good';      // 20-26

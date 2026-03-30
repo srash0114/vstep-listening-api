@@ -114,11 +114,12 @@ $dynamic_routes = [
     '/^POST \/api\/v1\/exams\/(\d+)\/start$/'                                                  => ['TestAccessController', 'startExam'],
     '/^POST \/api\/v1\/user-exams\/(\d+)\/answer$/'                                            => ['TestAccessController', 'saveAnswer'],
     '/^POST \/api\/v1\/user-exams\/(\d+)\/submit$/'                                            => ['TestAccessController', 'submitExam'],
+    '/^POST \/api\/v1\/user-exams\/(\d+)\/pause$/'                                             => ['TestAccessController', 'pauseExam'],
     '/^GET \/api\/v1\/user-exams\/(\d+)\/result$/'                                             => ['TestAccessController', 'getResult'],
     '/^DELETE \/api\/v1\/user-exams\/(\d+)$/'                                                  => ['TestAccessController', 'deleteUserExam'],
 
     // Admin Exams
-    '/^GET \/api\/v1\/admin\/exams\/(\d+)$/'                                                   => ['ExamController', 'getById'],
+    '/^GET \/api\/v1\/admin\/exams\/(\d+)$/'                                                   => ['ExamController', 'getByIdAdmin'],
     '/^PUT \/api\/v1\/admin\/exams\/(\d+)$/'                                                   => ['ExamController', 'update'],
     '/^DELETE \/api\/v1\/admin\/exams\/(\d+)$/'                                                => ['ExamController', 'delete'],
 

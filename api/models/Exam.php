@@ -26,11 +26,10 @@ class Exam {
     }
 
     // Get exam with all parts, passages, questions, and options
-    public function getWithContent($id) {
+    public function getWithContent($id, $with_answers = false) {
         $exam = $this->getById($id);
         if (!$exam) return null;
 
-        // Add parts with all content
         $query = "SELECT * FROM parts WHERE exam_id = ? ORDER BY part_number ASC";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $id);
@@ -39,7 +38,7 @@ class Exam {
 
         $exam['parts'] = [];
         foreach ($parts as $part) {
-            $part = $this->enrichPart($part);
+            $part = $this->enrichPart($part, $with_answers);
             $exam['parts'][] = $part;
         }
 
@@ -48,28 +47,10 @@ class Exam {
 
     // Get exam content WITHOUT correct answers (for taking exam)
     public function getForTaking($id) {
-        $exam = $this->getWithContent($id);
-        if (!$exam) return null;
-
-        // Remove sensitive data
-        foreach ($exam['parts'] as &$part) {
-            foreach ($part['passages'] ?? [] as &$passage) {
-                unset($passage['script']);
-            }
-            foreach ($part['questions'] ?? [] as &$question) {
-                unset($question['difficulty_level']);
-                unset($question['script']);
-                foreach ($question['options'] as &$option) {
-                    unset($option['is_correct']);
-                }
-            }
-        }
-
-        return $exam;
+        return $this->getWithContent($id, false);
     }
 
-    private function enrichPart($part) {
-        // Get passages if Part 2 or 3
+    private function enrichPart($part, $with_answers = false) {
         if ($part['part_number'] > 1) {
             $query = "SELECT * FROM passages WHERE part_id = ? ORDER BY passage_order ASC";
             $stmt = $this->db->prepare($query);
@@ -78,18 +59,17 @@ class Exam {
             $part['passages'] = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
             foreach ($part['passages'] as &$passage) {
-                $passage['questions'] = $this->getPassageQuestions($passage['id']);
+                $passage['questions'] = $this->getPassageQuestions($passage['id'], $with_answers);
             }
         } else {
-            // Part 1: No passages, questions directly under part
             $part['passages'] = null;
-            $part['questions'] = $this->getPartQuestions($part['id']);
+            $part['questions'] = $this->getPartQuestions($part['id'], $with_answers);
         }
 
         return $part;
     }
 
-    private function getPartQuestions($part_id) {
+    private function getPartQuestions($part_id, $with_answers = false) {
         $query = "SELECT * FROM questions WHERE part_id = ? AND passage_id IS NULL ORDER BY order_index ASC";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $part_id);
@@ -97,13 +77,13 @@ class Exam {
         $questions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
         foreach ($questions as &$question) {
-            $question['options'] = $this->getQuestionOptions($question['id']);
+            $question['options'] = $this->getQuestionOptions($question['id'], $with_answers);
         }
 
         return $questions;
     }
 
-    private function getPassageQuestions($passage_id) {
+    private function getPassageQuestions($passage_id, $with_answers = false) {
         $query = "SELECT * FROM questions WHERE passage_id = ? ORDER BY order_index ASC";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $passage_id);
@@ -111,14 +91,17 @@ class Exam {
         $questions = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
         foreach ($questions as &$question) {
-            $question['options'] = $this->getQuestionOptions($question['id']);
+            $question['options'] = $this->getQuestionOptions($question['id'], $with_answers);
         }
 
         return $questions;
     }
 
-    private function getQuestionOptions($question_id) {
-        $query = "SELECT id, question_id, content, option_label FROM options WHERE question_id = ? ORDER BY option_label ASC";
+    private function getQuestionOptions($question_id, $with_answers = false) {
+        $cols = $with_answers
+            ? "id, question_id, content, option_label, is_correct"
+            : "id, question_id, content, option_label";
+        $query = "SELECT $cols FROM options WHERE question_id = ? ORDER BY option_label ASC";
         $stmt = $this->db->prepare($query);
         $stmt->bind_param('i', $question_id);
         $stmt->execute();

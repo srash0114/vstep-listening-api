@@ -85,6 +85,23 @@ class UserExam {
         return $user_exam;
     }
 
+    // Get in-progress exam (started but not submitted)
+    public function getInProgress($user_id, $exam_id) {
+        $query = "SELECT * FROM {$this->table} WHERE user_id = ? AND exam_id = ? AND submitted_at IS NULL ORDER BY id DESC LIMIT 1";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param('ii', $user_id, $exam_id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_assoc();
+    }
+
+    // Pause exam - save current time_spent, set paused_at
+    public function pause($id, $time_spent) {
+        $query = "UPDATE {$this->table} SET time_spent = ?, paused_at = NOW() WHERE id = ? AND submitted_at IS NULL";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param('ii', $time_spent, $id);
+        return $stmt->execute();
+    }
+
     // Check if user already submitted this exam
     public function checkSubmitted($user_id, $exam_id) {
         $query = "SELECT id FROM {$this->table} WHERE user_id = ? AND exam_id = ? AND submitted_at IS NOT NULL LIMIT 1";

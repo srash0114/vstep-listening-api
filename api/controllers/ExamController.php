@@ -63,15 +63,38 @@ class ExamController {
 
         $exam_id = intval($exam_id);
         $controller = new self();
-        
-        // Check if this is for taking exam (hide answers and scripts)
-        $for_taking = isset($_GET['for_taking']) && $_GET['for_taking'] == '1';
-        
-        if ($for_taking) {
-            $exam = $controller->exam_model->getForTaking($exam_id);
-        } else {
-            $exam = $controller->exam_model->getWithContent($exam_id);
+
+        $exam = $controller->exam_model->getForTaking($exam_id);
+
+        if (!$exam) {
+            $response = Response::notFound('Exam not found');
+            Response::send($response);
+            return;
         }
+
+        $response = Response::success($exam, 'Exam retrieved successfully');
+        Response::send($response);
+    }
+
+    /**
+     * GET /api/v1/admin/exams/{exam_id}
+     * Get exam with full content including correct answers (admin only)
+     */
+    public static function getByIdAdmin($exam_id = null) {
+        if ($exam_id === null) {
+            $exam_id = $_GET['id'] ?? null;
+        }
+
+        if (empty($exam_id)) {
+            $response = Response::badRequest('missing_id', 'Exam ID is required');
+            Response::send($response);
+            return;
+        }
+
+        $exam_id = intval($exam_id);
+        $controller = new self();
+
+        $exam = $controller->exam_model->getWithContent($exam_id, true);
 
         if (!$exam) {
             $response = Response::notFound('Exam not found');
@@ -123,32 +146,9 @@ class ExamController {
             return;
         }
 
-        // Get part content
+        // Get part content (no answers for public endpoint)
         $part = $controller->part_model->getWithContent($part['id']);
 
-        // Remove sensitive data for taking exam
-        if (isset($_GET['for_taking']) && $_GET['for_taking'] == '1') {
-            if ($part['passages'] ?? null) {
-                foreach ($part['passages'] as &$passage) {
-                    unset($passage['script']);
-                    foreach ($passage['questions'] as &$question) {
-                        unset($question['script']);
-                        unset($question['difficulty_level']);
-                        foreach ($question['options'] as &$option) {
-                            unset($option['is_correct']);
-                        }
-                    }
-                }
-            } elseif ($part['questions'] ?? null) {
-                foreach ($part['questions'] as &$question) {
-                    unset($question['script']);
-                    unset($question['difficulty_level']);
-                    foreach ($question['options'] as &$option) {
-                        unset($option['is_correct']);
-                    }
-                }
-            }
-        }
 
         $response = Response::success($part, 'Part retrieved successfully');
         Response::send($response);
