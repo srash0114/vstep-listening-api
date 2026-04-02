@@ -7,13 +7,15 @@ class TokenManager {
     /**
      * Generate a simple token
      */
-    public static function generate($userId, $email, $role = 'user') {
+    public static function generate($userId, $email, $role = 'user', $username = null, $full_name = null) {
         $payload = [
-            'userId' => $userId,
-            'email' => $email,
-            'role' => $role,
+            'userId'   => $userId,
+            'email'    => $email,
+            'role'     => $role,
+            'username' => $username,
+            'full_name' => $full_name,
             'createdAt' => time(),
-            'expiresAt' => time() + self::$expiry
+            'expiresAt' => time() + self::$expiry,
         ];
         
         // Base64 encode the JSON payload first

@@ -4,18 +4,20 @@
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(100) UNIQUE NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
+    username VARCHAR(100) UNIQUE NULL,
+    email VARCHAR(255) UNIQUE NULL,
+    password_hash VARCHAR(255) NULL,
     full_name VARCHAR(255),
     avatar_url VARCHAR(255),
+    google_id VARCHAR(255) UNIQUE NULL,
     role ENUM('user', 'admin') NOT NULL DEFAULT 'user',
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     last_login TIMESTAMP NULL DEFAULT NULL,
     INDEX idx_username (username),
-    INDEX idx_email (email)
+    INDEX idx_email (email),
+    INDEX idx_google_id (google_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Exams (Đề thi)

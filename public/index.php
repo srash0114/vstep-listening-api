@@ -69,6 +69,7 @@ require_once __DIR__ . '/../api/controllers/PassageController.php';
 require_once __DIR__ . '/../api/controllers/QuestionController.php';
 require_once __DIR__ . '/../api/controllers/OptionController.php';
 require_once __DIR__ . '/../api/controllers/TestAccessController.php';
+require_once __DIR__ . '/../api/controllers/AuthController.php';
 
 // Parse request
 $request_uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -81,11 +82,16 @@ $request_uri = preg_replace('#^/+#', '/', $request_uri);
 $routes = [
     // Users / Auth
     'POST /api/users/register'        => ['UserController', 'register'],
+    'GET /api/auth/google'            => ['AuthController', 'redirectToGoogle'],
+    'GET /api/auth/google/callback'   => ['AuthController', 'handleGoogleCallback'],
+    'POST /api/users/unlink-google'   => ['AuthController', 'unlinkGoogle'],
     'POST /api/users/login'           => ['UserController', 'login'],
     'POST /api/users/logout'          => ['UserController', 'logout'],
     'GET /api/users'                  => ['UserController', 'getById'],
     'GET /api/users/results'          => ['UserController', 'getUserResults'],
     'GET /api/users/check-status'     => ['UserController', 'checkStatus'],
+    'PUT /api/users/profile'          => ['UserController', 'updateProfile'],
+    'PUT /api/users/password'         => ['UserController', 'updatePassword'],
 
     // Results
     'POST /api/results'               => ['ResultController', 'submit'],

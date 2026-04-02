@@ -12,9 +12,8 @@ class UserController {
     public static function register() {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        if (empty($data['username']) || empty($data['email']) || empty($data['password'])) {
-            $response = Response::badRequest('missing_fields', 
-                'username, email, and password are required');
+        if (empty($data['username']) || empty($data['email']) || empty($data['password']) || empty($data['full_name'])) {
+            $response = Response::badRequest('missing_fields', 'username, email, password and full_name are required');
             Response::send($response);
         }
 
@@ -46,24 +45,26 @@ class UserController {
     public static function login() {
         $data = json_decode(file_get_contents("php://input"), true);
 
-        if (empty($data['email']) || empty($data['password'])) {
-            $response = Response::badRequest('missing_fields', 
-                'email and password are required');
+        if (empty($data['password']) || (empty($data['email']) && empty($data['username']))) {
+            $response = Response::badRequest('missing_fields', 'password and email or username are required');
             Response::send($response);
         }
 
         $controller = new self();
-        $user = $controller->user->getByEmail($data['email']);
+
+        $user = !empty($data['email'])
+            ? $controller->user->getByEmail($data['email'])
+            : $controller->user->getByUsername($data['username']);
 
         if (!$user || !$controller->user->verifyPassword($data['password'], $user['password_hash'])) {
-            $response = Response::unauthorized('Invalid email or password');
+            $response = Response::unauthorized('Invalid email/username or password');
             Response::send($response);
         }
 
         $controller->user->updateLastLogin($user['id']);
 
         // Generate token with HttpOnly cookie
-        $token = TokenManager::generate($user['id'], $user['email'], $user['role'] ?? 'user');
+        $token = TokenManager::generate($user['id'], $user['email'], $user['role'] ?? 'user', $user['username'], $user['full_name']);
         TokenManager::setCookie($token);
 
         // Return user WITHOUT token in response (stored in HttpOnly cookie)
@@ -71,7 +72,7 @@ class UserController {
             'id' => $user['id'],
             'username' => $user['username'],
             'email' => $user['email'],
-            'fullName' => $user['full_name'],
+            'full_name' => $user['full_name'],
             'createdAt' => $user['created_at']
         ];
 
@@ -124,20 +125,117 @@ class UserController {
         
         // Return user status
         $userData = [
-            'id' => $user['id'],
-            'username' => $user['username'],
-            'email' => $user['email'],
-            'fullName' => $user['full_name'],
-            'isActive' => $user['is_active'],
-            'createdAt' => $user['created_at'],
-            'lastLogin' => $user['last_login'],
-            'role' => $user['role'] ?? 'user',
+            'id'           => $user['id'],
+            'username'     => $user['username'],
+            'email'        => $user['email'],
+            'full_name'    => $user['full_name'],
+            'isActive'     => $user['is_active'],
+            'createdAt'    => $user['created_at'],
+            'lastLogin'    => $user['last_login'],
+            'role'         => $user['role'] ?? 'user',
+            'has_password' => !empty($user['password_hash']),
+            'has_google'   => !empty($user['google_id']),
+            'avatar_url'   => $user['avatar_url'] ?? null
         ];
         
         $response = Response::success($userData, 'User is logged in');
         Response::send($response);
     }
     
+    public static function updateProfile() {
+        $token = TokenManager::getTokenFromHeader();
+        if (!$token) {
+            $response = Response::unauthorized('No token provided');
+            Response::send($response);
+            return;
+        }
+        $decoded = TokenManager::verify($token);
+        if (!$decoded) {
+            $response = Response::unauthorized('Token invalid or expired');
+            Response::send($response);
+            return;
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+        $update = [];
+
+        if (isset($data['username'])) $update['username']  = trim($data['username']);
+        if (isset($data['full_name'])) $update['full_name'] = trim($data['full_name']);
+
+        if (empty($update)) {
+            $response = Response::badRequest('missing_fields', 'username or full_name is required');
+            Response::send($response);
+            return;
+        }
+
+        $controller = new self();
+
+        // Check username not taken by another user
+        if (!empty($update['username'])) {
+            $existing = $controller->user->getByUsername($update['username']);
+            if ($existing && (int)$existing['id'] !== (int)$decoded['userId']) {
+                $response = Response::conflict('username_taken', 'Username already taken');
+                Response::send($response);
+                return;
+            }
+        }
+
+        $controller->user->updateProfile($decoded['userId'], $update);
+        $user = $controller->user->getById($decoded['userId']);
+
+        $response = Response::success([
+            'id'        => $user['id'],
+            'username'  => $user['username'],
+            'full_name' => $user['full_name'],
+            'email'     => $user['email'],
+        ], 'Profile updated successfully');
+        Response::send($response);
+    }
+
+    public static function updatePassword() {
+        $token = TokenManager::getTokenFromHeader();
+        if (!$token) {
+            $response = Response::unauthorized('No token provided');
+            Response::send($response);
+            return;
+        }
+        $decoded = TokenManager::verify($token);
+        if (!$decoded) {
+            $response = Response::unauthorized('Token invalid or expired');
+            Response::send($response);
+            return;
+        }
+
+        $data = json_decode(file_get_contents("php://input"), true);
+
+        if (empty($data['new_password'])) {
+            $response = Response::badRequest('missing_fields', 'new_password is required');
+            Response::send($response);
+            return;
+        }
+
+        $controller = new self();
+        $user = $controller->user->findById($decoded['userId']);
+
+        // If user has existing password, require current_password to verify
+        if (!empty($user['password_hash'])) {
+            if (empty($data['current_password'])) {
+                $response = Response::badRequest('missing_fields', 'current_password is required');
+                Response::send($response);
+                return;
+            }
+            if (!$controller->user->verifyPassword($data['current_password'], $user['password_hash'])) {
+                $response = Response::unauthorized('Current password is incorrect');
+                Response::send($response);
+                return;
+            }
+        }
+
+        $controller->user->updatePassword($decoded['userId'], $data['new_password']);
+        $response = Response::success(null, 'Password updated successfully');
+        Response::send($response);
+    }
+
     public static function logout() {
         // Clear HttpOnly cookie
         TokenManager::clearCookie();
