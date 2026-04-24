@@ -78,6 +78,21 @@ $request_method = $_SERVER['REQUEST_METHOD'];
 $request_uri = str_replace('/public', '', $request_uri);
 $request_uri = preg_replace('#^/+#', '/', $request_uri);
 
+// Health checks for Render and external uptime probes.
+if ($request_method === 'GET' && ($request_uri === '/health' || $request_uri === '/api/health')) {
+    http_response_code(200);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Service is healthy',
+        'data' => [
+            'status' => 'ok',
+            'timestamp' => gmdate('c')
+        ],
+        'statusCode' => 200
+    ]);
+    exit;
+}
+
 // Exact routes
 $routes = [
     // Users / Auth

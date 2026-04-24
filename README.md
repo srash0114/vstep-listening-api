@@ -165,17 +165,52 @@ vstep-listening-api/
 └── setup.php
 ```
 
-## Deploy lên Railway
+## Deploy lên Render
 
-1. Push code lên GitHub
-2. Tạo project mới trên [Railway](https://railway.app)
-3. Connect GitHub repo
-4. Thêm MySQL service
-5. Set environment variables:
-   - `DB_HOST`, `DB_USER`, `DB_PASS`, `DB_NAME`
-   - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-   - `ALLOWED_ORIGINS`
-6. Set start command: `php -S 0.0.0.0:$PORT public/index.php`
+### Cach 1: Dung render.yaml (khuyen nghi)
+
+1. Push code len GitHub.
+2. Trong Render, chon New + -> Blueprint.
+3. Chon repo nay, Render se doc file `render.yaml`.
+4. Dien cac bien moi truong dang `sync: false` trong dashboard.
+5. Deploy va test health check:
+    - `https://your-service.onrender.com/health`
+
+### Cach 2: Tao Web Service thu cong
+
+1. Runtime: PHP
+2. Build Command:
+    - `composer install --no-dev --optimize-autoloader`
+3. Start Command:
+    - `php -S 0.0.0.0:$PORT -t public public/router.php`
+4. Health Check Path:
+    - `/health`
+
+### Bien moi truong bat buoc
+
+- `DB_HOST`
+- `DB_PORT` (thuong la `3306`)
+- `DB_NAME`
+- `DB_USER`
+- `DB_PASS`
+- `ALLOWED_ORIGINS`
+- `TOKEN_SECRET`
+
+### Bien moi truong tuy chon
+
+- `API_URL`
+- `FRONTEND_URL`
+- `TOKEN_EXPIRY`
+- `CLOUDINARY_CLOUD_NAME`
+- `CLOUDINARY_API_KEY`
+- `CLOUDINARY_API_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
+
+Luu y:
+- Render khong dung `.htaccess` nhu shared hosting Apache, service nay chay bang `php -S` + `public/router.php`.
+- Neu dung Render free plan, service co the bi sleep khi khong co luu luong.
 
 ## License
 
