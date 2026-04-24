@@ -24,9 +24,6 @@ class TokenManager {
         // Sign the base64 payload (same as verify() will do)
         $signature = self::sign($base64Payload);
         
-        error_log('[TOKEN-GENERATE] Base64: ' . $base64Payload);
-        error_log('[TOKEN-GENERATE] Signature: ' . $signature);
-        
         return $base64Payload . '.' . $signature;
     }
     
@@ -35,48 +32,33 @@ class TokenManager {
      */
     public static function verify($token) {
         if (empty($token)) {
-            error_log('[TOKEN] Empty token');
             return null;
         }
         
-        error_log('[TOKEN] Full token: ' . $token);
-        
         $parts = explode('.', $token);
-        error_log('[TOKEN] Parts count: ' . count($parts));
         
         if (count($parts) !== 2) {
-            error_log('[TOKEN] Invalid format: ' . count($parts) . ' parts');
             return null;
         }
         
         $payload = $parts[0];
         $signature = $parts[1];
         
-        error_log('[TOKEN] Payload part: ' . $payload);
-        error_log('[TOKEN] Signature part: ' . $signature);
-        
         // Verify signature
         $expectedSig = self::sign($payload);
-        error_log('[TOKEN] Expected sig: ' . $expectedSig);
-        error_log('[TOKEN] Got sig: ' . $signature);
-        error_log('[TOKEN] Match: ' . ($signature === $expectedSig ? 'YES' : 'NO'));
         
         if ($signature !== $expectedSig) {
-            error_log('[TOKEN] Signature mismatch. Got: ' . $signature . ', Expected: ' . $expectedSig);
             return null;
         }
         
         // Decode payload
         $decoded = json_decode(base64_decode($payload), true);
-        error_log('[TOKEN] Decoded: ' . json_encode($decoded));
         
         // Check expiry
         if ($decoded['expiresAt'] < time()) {
-            error_log('[TOKEN] Expired: ' . $decoded['expiresAt'] . ' < ' . time());
             return null;
         }
         
-        error_log('[TOKEN] Valid token for user: ' . $decoded['userId']);
         return $decoded;
     }
     
