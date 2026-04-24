@@ -1,22 +1,18 @@
 <IfModule mod_rewrite.c>
-    # Enable rewriting
     RewriteEngine On
-
-    # Set base path
     RewriteBase /
-
-    # Prevent direct access to files/folders except for existing files/folders
+    
+    # Prevent access to hidden files and directories
+    RewriteRule "^\." - [F]
+    
+    # Serve existing files and directories directly
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
-
+    
     # Route all requests to index.php
     RewriteRule ^(.*)$ index.php [QSA,L]
 </IfModule>
 
-# Allow cross-origin requests (backup in case PHP headers don't work)
 <IfModule mod_headers.c>
-    Header set Access-Control-Allow-Origin "*"
-    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-    Header set Access-Control-Allow-Headers "Content-Type, Authorization, X-API-Key, Accept"
     Header set Access-Control-Max-Age "86400"
 </IfModule>
