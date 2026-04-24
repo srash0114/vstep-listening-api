@@ -126,7 +126,9 @@ class AuthController {
         $token = TokenManager::generate($user['id'], $user['email'], $user['role'] ?? 'user', $user['username'], $user['full_name']);
         TokenManager::setCookie($token);
 
-        header('Location: ' . $frontend);
+        // Pass token in URL for frontend to store (works across different domains)
+        $redirectUrl = $frontend . '?token=' . urlencode($token);
+        header('Location: ' . $redirectUrl);
         exit;
     }
 
