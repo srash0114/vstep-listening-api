@@ -114,13 +114,26 @@ class TokenManager {
         $isSecure = !empty($_SERVER['HTTPS']) ||
                     ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
 
+        // For cross-domain cookies, extract the domain from FRONTEND_URL
+        $cookieDomain = '';
+        $frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:3000';
+        if (preg_match('/^https?:\/\/([^\/]+)/', $frontendUrl, $matches)) {
+            $host = $matches[1];
+            // Remove port if present
+            $host = explode(':', $host)[0];
+            // Only set domain for production (not localhost)
+            if ($host !== 'localhost' && $host !== '127.0.0.1') {
+                $cookieDomain = '.' . $host; // Subdomain-friendly domain
+            }
+        }
+
         setcookie(
             'auth_token',
             $token,
             [
                 'expires'  => time() + self::$expiry,
                 'path'     => '/',
-                'domain'   => '',
+                'domain'   => $cookieDomain,
                 'secure'   => $isSecure,
                 'httponly' => true,
                 'samesite' => $isSecure ? 'None' : 'Lax'
@@ -135,13 +148,26 @@ class TokenManager {
         $isSecure = !empty($_SERVER['HTTPS']) ||
                     ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https';
 
+        // Extract domain same as setCookie
+        $cookieDomain = '';
+        $frontendUrl = getenv('FRONTEND_URL') ?: 'http://localhost:3000';
+        if (preg_match('/^https?:\/\/([^\/]+)/', $frontendUrl, $matches)) {
+            $host = $matches[1];
+            // Remove port if present
+            $host = explode(':', $host)[0];
+            // Only set domain for production (not localhost)
+            if ($host !== 'localhost' && $host !== '127.0.0.1') {
+                $cookieDomain = '.' . $host; // Subdomain-friendly domain
+            }
+        }
+
         setcookie(
             'auth_token',
             '',
             [
                 'expires'  => time() - 3600,
                 'path'     => '/',
-                'domain'   => '',
+                'domain'   => $cookieDomain,
                 'secure'   => $isSecure,
                 'httponly' => true,
                 'samesite' => $isSecure ? 'None' : 'Lax'
